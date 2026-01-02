@@ -1,0 +1,7 @@
+{
+  "name": "Copy of TEU Global AI Assistant",
+  "description": "An expert AI assistant specializing in U.S. customs brokerage and trade compliance, providing accurate HTS codes and related information.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

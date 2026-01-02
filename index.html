@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TEU Global AI Assistant</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'dark-bg': '#0F172A',
+              'dark-surface': '#1E293B',
+              'dark-border': '#334155',
+              'dark-text-primary': '#F1F5F9',
+              'dark-text-secondary': '#94A3B8',
+              
+              'light-bg': '#F8FAFC',
+              'light-surface': '#FFFFFF',
+              'light-border': '#E2E8F0',
+              'light-text-primary': '#000000',
+              'light-text-secondary': '#000000',
+              
+              'accent': '#F97316',
+              'accent-hover': '#EA580C',
+
+              'primary-blue': '#2563EB',
+              'primary-blue-hover': '#1D4ED8',
+
+              'section-blue-light': '#EFF6FF',
+              'section-blue-dark': '#1E3A8A',
+              'section-green-light': '#F0FDF4',
+              'section-green-dark': '#166534',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['Fira Code', 'monospace'],
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-out forwards',
+              'slide-up': 'slideUp 0.5s ease-out forwards',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: 0 },
+                '100%': { opacity: 1 },
+              },
+              slideUp: {
+                '0%': { opacity: 0, transform: 'translateY(10px)' },
+                '100%': { opacity: 1, transform: 'translateY(0)' },
+              }
+            },
+            boxShadow: {
+                soft: '0 2px 4px 0 rgb(0 0 0 / 0.05)',
+                md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+            }
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+
+    <script type="importmap">
+{
+  "imports": {
+    "react/jsx-runtime": "https://aistudiocdn.com/react@^19.2.0/jsx-runtime",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.24.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "remark-gfm": "https://esm.sh/remark-gfm@^4.0.1",
+    "react-markdown": "https://esm.sh/react-markdown@^10.1.0"
+  }
+}
+</script>
+    <style>
+      :root {
+        --hover-color: #F97316; /* Default Orange for Light */
+      }
+      .dark {
+        --hover-color: #2563EB; /* Blue for Dark */
+      }
+
+      body {
+        transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+      }
+
+      /* Global Hover Effect Utility */
+      .hover-themed:hover {
+        border-color: var(--hover-color) !important;
+        color: var(--hover-color) !important;
+        box-shadow: 0 0 15px -3px var(--hover-color);
+      }
+      
+      .btn-hover-themed:hover {
+        background-color: var(--hover-color) !important;
+        box-shadow: 0 4px 14px 0 var(--hover-color);
+        transform: translateY(-1px);
+      }
+
+      /* Light Theme: Force Gray Font to Black */
+      html:not(.dark) .text-zinc-400,
+      html:not(.dark) .text-zinc-500,
+      html:not(.dark) .text-zinc-600,
+      html:not(.dark) .text-slate-400,
+      html:not(.dark) .text-slate-500,
+      html:not(.dark) .text-slate-600,
+      html:not(.dark) .text-gray-400,
+      html:not(.dark) .text-gray-500,
+      html:not(.dark) .text-gray-600,
+      html:not(.dark) .text-neutral-400,
+      html:not(.dark) .text-neutral-500,
+      html:not(.dark) .text-neutral-600 {
+        color: #000000 !important;
+      }
+
+      /* Custom scrollbar for webkit browsers */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: #94A3B8; /* slate-400 */
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background-color: #475569; /* slate-600 */
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: #64748B; /* slate-500 */
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background-color: #94A3B8; /* slate-400 */
+      }
+      /* Enhanced focus ring for accessibility */
+      *:focus-visible {
+          outline: 3px solid var(--hover-color);
+          outline-offset: 2px;
+          border-radius: 6px;
+      }
+      
+      /* Watermark styling - INCREASED VISIBILITY */
+      .watermark-bg {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-size: cover;
+        background-position: center;
+        opacity: 0.22; /* Increased from 0.12 */
+        z-index: 0;
+        transition: background-image 0.5s ease-in-out;
+      }
+      .dark .watermark-bg {
+        opacity: 0.32; /* Increased from 0.20 */
+      }
+    </style>
+  </head>
+  <body class="bg-light-bg dark:bg-dark-bg overflow-hidden">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
