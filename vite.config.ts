@@ -1,31 +1,21 @@
 import path from 'path'
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+export default defineConfig({
+  // ✅ MUST match repo name EXACTLY (case-sensitive)
+  base: '/TEU-GLOBAL-HTS-ASSISTANT-2026/',
 
-  return {
-    // ✅ REQUIRED for GitHub Pages (THIS FIXES BLANK PAGE)
-    base: '/copy-of-teu-global-ai-assistant/',
+  plugins: [react()],
 
-    server: {
-      port: 3000,
-      host: '0.0.0.0',
+  server: {
+    port: 3000,
+    host: '0.0.0.0',
+  },
+
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
     },
-
-    plugins: [react()],
-
-    define: {
-      // ⚠️ NOTE: These values WILL be exposed to the browser
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-    },
-
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, 'src'),
-      },
-    },
-  }
+  },
 })
