@@ -113,7 +113,7 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, history, o
             </div>
         </footer>
          {/* Powered By Footer Attribution - Fixed Bottom Right of Main Content */}
-                    <div className="absolute center z-50 text-[10px] font-black uppercase tracking-widest pointer-events-none transition-all duration-300">
+                    <div className="flex items-center z-50 text-[10px] font-black uppercase tracking-widest pointer-events-none transition-all duration-300">
                         <div className="px-3 py-1.5 rounded-lg bg-white/40 dark:bg-black/20 backdrop-blur-md border border-accent/20 text-zinc-500 dark:text-zinc-400 shadow-sm">
                             Powered By Junaid Abbasi
                         </div>
