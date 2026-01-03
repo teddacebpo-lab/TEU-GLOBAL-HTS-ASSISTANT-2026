@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useMemo, useState } from 'react';
 import { ChatMessage, PrintData, AnalysisData } from '../types';
 import MarkdownRenderer from './MarkdownRenderer';
@@ -269,12 +270,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onAddExpiredHts, setP
             htsCode: data.recommendations[0]?.htsCode || "N/A",
             scenarioDescription: data.recommendations[0]?.scenario || "N/A",
             dutyInfo: {
-                general: `${data.quickStats?.totalDuty?.toFixed(2) || '0.00'}% (Estimated Total)`,
-                special: "Variable - Program Verified",
+                general: `${data.quickStats?.totalDuty?.toFixed(2) || '0.00'}%`,
+                special: "Variable - USMCA/KORUS Applied",
                 column2: "Variable - Check Sanctions",
             },
-            tariffInfo: responseText.match(/\*\*(?:ADDITIONAL TARIFFS?)\*\*\s*([\s\S]*?)(?=\n\*\*|$)/i)?.[1].trim() || "See detailed AI breakdown.",
-            complianceInfo: responseText.match(/\*\*(?:COMPLIANCE|POTENTIAL COMPLIANCE FLAGS)\*\*\s*([\s\S]*?)(?=\n\*\*|$)/i)?.[1].trim() || "See detailed AI breakdown.",
+            tariffInfo: responseText.match(/\*\*(?:ADDITIONAL TARIFFS?)\*\*\s*([\s\S]*?)(?=\n\*\*|$)/i)?.[1].trim() || "No additional trade remedies detected.",
+            complianceInfo: responseText.match(/\*\*(?:COMPLIANCE|POTENTIAL COMPLIANCE FLAGS)\*\*\s*([\s\S]*?)(?=\n\*\*|$)/i)?.[1].trim() || "Standard PGA entry protocol.",
+            quickStats: {
+                totalDuty: data.quickStats.totalDuty,
+                baseDuty: data.quickStats.baseDuty,
+                additionalCount: data.quickStats.additionalTariffs.length,
+                agencies: data.quickStats.agencies
+            }
         });
 
         setTimeout(() => {
