@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   try {
     // Start streaming from Gemini API
     const responseStream = await ai.models.generateContentStream({
-      model: model || 'gemini-3-flash-preview',
+      model: model || 'gemini-2.5-flash',
       contents,
       config,
     });

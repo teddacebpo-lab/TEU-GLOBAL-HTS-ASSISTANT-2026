@@ -76,7 +76,7 @@ export const processQuery = async (
     prompt = buildClassificationPrompt(classificationPromptTemplate, query, country, !!imageData, expiredHtsCodes);
   }
 
-  const modelName = 'gemini-3-flash-preview';
+  const modelName = 'gemini-2.5-flash';
   addLog(`Using AI model: ${modelName}. View type: ${viewType}`);
 
   let requestContents: any;
@@ -144,7 +144,7 @@ export const summarizeAnalysis = async (data: AnalysisData): Promise<string> => 
     body: JSON.stringify({
       contents: [{ text: contents }],
       config: {},
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.5-flash',
     }),
   });
 
