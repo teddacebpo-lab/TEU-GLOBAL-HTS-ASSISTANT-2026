@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -38,7 +37,7 @@ const App: React.FC = () => {
     const [subscriptionRequests, setSubscriptionRequests] = useState<SubscriptionRequest[]>([]);
 
     // UI State
-    const [theme, setTheme] = useState<Theme>(Theme.Dark);
+    const [theme, setTheme] = useState<Theme>(Theme.Light);
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
     const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
     const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
@@ -84,7 +83,7 @@ const App: React.FC = () => {
     useEffect(() => {
         const loadInitialData = async () => {
             addLog("Initializing TEU Global AI Intelligence Cluster...");
-            const savedTheme = await loadData('theme', Theme.Dark);
+            const savedTheme = await loadData('theme', Theme.Light);
             setTheme(savedTheme);
 
             const savedMessages = await loadData<ChatMessage[]>('chatHistory', []);
