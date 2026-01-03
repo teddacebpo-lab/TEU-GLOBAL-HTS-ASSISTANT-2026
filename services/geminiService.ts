@@ -1,11 +1,14 @@
+
 import { AiBehavior, AnalysisData } from "../types";
 
-const fileToGenerativePart = (imageData: { mimeType: string; data: string }) => ({
-  inlineData: {
-    mimeType: imageData.mimeType,
-    data: imageData.data,
-  },
-});
+const fileToGenerativePart = (imageData: { mimeType: string; data: string }) => {
+  return {
+    inlineData: {
+      mimeType: imageData.mimeType,
+      data: imageData.data,
+    },
+  };
+};
 
 const buildClassificationPrompt = (
   basePrompt: string,
@@ -14,43 +17,47 @@ const buildClassificationPrompt = (
   hasImage: boolean,
   expiredCodes: string[]
 ) => {
-  const imageInstruction = hasImage
-    ? "The user has uploaded a product picture. **CRITICAL:** Perform OCR and visual analysis on the image. Extract text like product names, model numbers, specs, or origin markings. Use this as primary source for classification; user description is supplementary."
+  const imageInstruction = hasImage 
+    ? "The user has uploaded a product picture. **CRITICAL INSTRUCTION:** You MUST perform Optical Character Recognition (OCR) and visual analysis on this image. Extract any and all text, such as product names, model numbers, specifications, or country of origin markings. This extracted text, combined with the visual details of the image, MUST be used as the primary source for the product description in your classification analysis. The user-provided text description should be considered supplementary." 
     : "";
-
+  
   const expiredCodesInstruction = expiredCodes.length > 0
-    ? `**Critical Restriction - Expired HTS Codes:**\nDo NOT use any of these HTS codes: ${expiredCodes.join(', ')}.`
+    ? `**Critical Restriction - Expired HTS Codes:**\nYou MUST NOT use any of the following HTS codes in your response: ${expiredCodes.join(', ')}.`
     : "";
 
-  return `
-${basePrompt}
-
-${expiredCodesInstruction}
-
-**User Input:**
-- Product Description: "${description}"
-- Country of Origin: "${country}"
-${imageInstruction}
-`;
+  let finalPrompt = basePrompt;
+  finalPrompt += `\n\n${expiredCodesInstruction}`;
+  finalPrompt += `
+    \n\n**User Input:**
+    *   **Product Description:** "${description}"
+    *   **Country of Origin:** "${country}"
+    *   ${imageInstruction}
+  `;
+  
+  return finalPrompt;
 };
 
 const buildLookupPrompt = (basePrompt: string, htsCode: string, expiredCodes: string[]) => {
-  const expiredCodesInstruction = expiredCodes.length > 0
-    ? `**Critical Restriction - Expired HTS Codes:**\nDo NOT provide details for these codes. If asked, mark as expired: ${expiredCodes.join(', ')}.`
+    const expiredCodesInstruction = expiredCodes.length > 0
+    ? `**Critical Restriction - Expired HTS Codes:**\nYou MUST NOT provide details for any of the following HTS codes. If the user asks for one, state that it is expired: ${expiredCodes.join(', ')}.`
     : "";
 
-  return `
-${basePrompt}
-
-${expiredCodesInstruction}
-
-**HTS Direct Lookup**
-- Target HTS Code: "${htsCode}"
-- Instructions:
-  1. Provide full 2025 HTSUS profile (MFN, Special Rates, Section 301/232, PGA flags).
-  2. Include ##ANALYSIS_DATA## metadata.
-  3. If invalid or missing, suggest nearest valid heading.
-`;
+    let finalPrompt = basePrompt;
+    finalPrompt += `\n\n${expiredCodesInstruction}`;
+    finalPrompt += `
+      \n\n**CRITICAL ACTION - HTS DIRECT LOOKUP:**
+      The user is requesting a definitive profile for HTS Code: **${htsCode}**.
+      
+      **Directives:**
+      1. Search your knowledge base for 2025 HTSUS data for this exact code: "${htsCode}".
+      2. Provide the full profile including General MFN duties, Special rates (USMCA etc), Section 301/232 trade remedies, and PGA flags.
+      3. You MUST include the analysis metadata block (##ANALYSIS_DATA##) containing the stats for this specific code.
+      4. If the code is not in the 2025 schedule or is incorrect, explain why and suggest the nearest valid heading.
+      
+      **User Input:**
+      *   **Target HTS Code:** "${htsCode}"
+    `;
+    return finalPrompt;
 };
 
 export const processQuery = async (
@@ -69,24 +76,24 @@ export const processQuery = async (
 ): Promise<string> => {
   addLog("processQuery invoked.");
 
-  let prompt: string;
+  let prompt;
   if (viewType === 'lookup') {
     prompt = buildLookupPrompt(lookupPromptTemplate, query.trim(), expiredHtsCodes);
   } else {
     prompt = buildClassificationPrompt(classificationPromptTemplate, query, country, !!imageData, expiredHtsCodes);
   }
 
-  const modelName = 'gemini-2.5-flash';
+  const modelName = 'gemini-3-flash-preview';
   addLog(`Using AI model: ${modelName}. View type: ${viewType}`);
 
   let requestContents: any;
+
   if (imageData) {
-    requestContents = [
-      fileToGenerativePart(imageData),
-      { text: prompt },
-    ];
+    const imagePart = fileToGenerativePart(imageData);
+    const textPart = { text: prompt };
+    requestContents = { parts: [imagePart, textPart] };
   } else {
-    requestContents = [{ text: prompt }];
+    requestContents = prompt;
   }
 
   try {
@@ -95,10 +102,10 @@ export const processQuery = async (
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: requestContents,
-        config: { temperature },
-        model: modelName,
+        config: { temperature: temperature },
+        model: modelName
       }),
-      signal,
+      signal: signal
     });
 
     if (!response.ok) {
@@ -122,10 +129,9 @@ export const processQuery = async (
         onChunk(chunk);
       }
     }
-
     return fullResponseText;
 
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw error;
     }
@@ -134,22 +140,21 @@ export const processQuery = async (
   }
 };
 
-// Helper to summarize AnalysisData
 export const summarizeAnalysis = async (data: AnalysisData): Promise<string> => {
-  const contents = `Please provide a concise, high-level summary (2-3 sentences) of this HTS classification analysis: ${JSON.stringify(data)}`;
+  const contents = `Please provide a concise, high-level executive summary (2-3 sentences) of this HTS classification analysis for a trade compliance report. Data: ${JSON.stringify(data)}`;
 
   const response = await fetch('/api/gemini', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ text: contents }],
+      contents: contents,
       config: {},
-      model: 'gemini-2.5-flash',
-    }),
+      model: 'gemini-3-flash-preview'
+    })
   });
 
   if (!response.ok) {
-    throw new Error('API error during summary generation');
+    throw new Error('API error');
   }
 
   const reader = response.body!.getReader();
@@ -165,3 +170,4 @@ export const summarizeAnalysis = async (data: AnalysisData): Promise<string> => 
 
   return fullText || "Summary unavailable.";
 };
+
