@@ -1,6 +1,8 @@
+// api/gemini.ts
 import { GoogleGenAI } from "@google/genai";
+import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Only allow POST requests
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
@@ -9,42 +11,48 @@ export default async function handler(req, res) {
 
   // Extract input from request body
   const { contents, config, model } = req.body;
-  if (!contents || !Array.isArray(contents) || contents.length === 0) {
-    return res.status(400).json({ error: 'Contents must be a non-empty array' });
+
+  // Validate contents
+  if (!contents || (Array.isArray(contents) && contents.length === 0)) {
+    return res.status(400).json({ error: 'Contents must be a non-empty array or object' });
   }
 
-  // Check API key
+  // Check for API key
   const API_KEY = process.env.GEMINI_API_KEY;
   if (!API_KEY) {
-    return res.status(500).json({ error: 'API key not configured' });
+    return res.status(500).json({ error: 'API key not configured on server' });
   }
 
   const ai = new GoogleGenAI({ apiKey: API_KEY });
 
   try {
-    // Stream response from Gemini API
+    // Start streaming from Gemini API
     const responseStream = await ai.models.generateContentStream({
       model: model || 'gemini-3-flash-preview',
       contents,
       config,
     });
 
-    // Set headers for streaming
+    // Set headers for streaming text
     res.writeHead(200, {
       'Content-Type': 'text/plain; charset=utf-8',
       'Transfer-Encoding': 'chunked',
+      'Cache-Control': 'no-cache',
     });
 
-    // Stream chunks to client
+    // Stream each chunk to the client
     for await (const chunk of responseStream) {
       if (chunk.text) {
         res.write(chunk.text);
       }
     }
 
+    // End response
     res.end();
-  } catch (err) {
-    console.error('Gemini API error:', err);
-    res.status(500).json({ error: err.message || 'Internal Server Error' });
+
+  } catch (error: any) {
+    console.error('Gemini API error:', error);
+    const message = error?.message || 'Internal Server Error';
+    res.status(500).json({ error: message });
   }
 }
