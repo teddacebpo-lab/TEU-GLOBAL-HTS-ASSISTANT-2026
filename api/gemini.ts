@@ -1,7 +1,7 @@
-// api/gemini.js
+// api/gemini.ts
 import { GoogleGenAI } from "@google/genai";
 
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any) {
   // Only allow POST requests
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
     // End response
     res.end();
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Gemini API error:', error);
     const message = error?.message || 'Internal Server Error';
     res.status(500).json({ error: message });
