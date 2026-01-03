@@ -1,3 +1,4 @@
+
 // types.ts
 
 export enum Theme {
@@ -58,6 +59,12 @@ export interface PrintData {
   };
   tariffInfo: string;
   complianceInfo: string;
+  quickStats?: {
+    totalDuty: number;
+    baseDuty: number;
+    additionalCount: number;
+    agencies: string[];
+  }
 }
 
 export type AiBehavior = 'concise' | 'detailed' | 'default';
